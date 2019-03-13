@@ -1,0 +1,46 @@
+components:
+  tools:
+    protocol: ${TOOL_PROTOCOL}
+    path: ${TOOL_PATH}
+    commands:
+      install:
+        id: 1
+        command: "npm install"
+        conditions:
+          - build: ${RUBAH_COMPOSE_STAGE}
+      doc:
+        id: 4
+        command: "npm start"
+  rubahjs:
+    protocol: ${RUBAHJS_PROTOCOL}
+    branch: ${RUBAHJS_BRANCH}
+    path: ${RUBAHJS_PATH}
+    compose:
+      doc: "rubahjs-doc"
+    commands:
+      install:
+        id: 2
+        command: "npm install"
+        conditions:
+          - build: ${RUBAH_COMPOSE_STAGE}
+      test:
+        id: 3
+        command: "npm test"
+      cleanup:
+        id: 5
+        command: "rm -rf doc && rm -rf test"
+  rubahjs-doc:
+    protocol: ${RUBAHJS_PROTOCOL}
+    branch: ${RUBAHJS_BRANCH_DOC}
+    path: ${RUBAHJS_PATH_DOC}
+    expose:
+      doc: "folder"
+exports:
+  rubahjs:
+    protocol: ${RUBAHJS_EXPORT_PROTOCOL}
+    branch: ${RUBAHJS_EXPORT_BRANCH}
+    path: ${RUBAHJS_EXPORT_PATH}
+    commands: 
+      copy:
+        id: 1
+        command: "cp -rfT ../../components/rubahjs ."

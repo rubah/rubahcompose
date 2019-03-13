@@ -1,0 +1,22 @@
+{
+  "name": "rubahcompose",
+  "version": "0.0.1",
+  "description": "multi project composing tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc mocha"
+  },
+  "keywords": [
+    "compose"
+  ],
+  "author": "averman",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "custom-env": "^1.0.0",
+    "lodash": "^4.17.11",
+    "rimraf": "^2.6.3",
+    "rubahhelper": "^0.2.3",
+    "rubahjs": "^0.3.1",
+    "shelljs": "^0.8.3"
+  }
+}

@@ -1,9 +1,5 @@
 require('custom-env').env(process.env.RUBAH_COMPOSE_STAGE || 'dev');
-const rubahjs = require("rubahjs");
-const fileSource = require("rubahjs/fileSource");
 const fs = require("fs");
-const recursive = require("recursive-readdir");
-const util = require("util");
 const rimraf = require("rimraf");
 const _ = require("lodash");
 const protocols = require("./protocols");
@@ -11,41 +7,10 @@ const shell = require("shelljs");
 const path = require("path");
 const flattenLeafValues = require("./src/utils/flattenLeafValues");
 const leafMap = require("./src/utils/leafMap");
-const evalEnv = require("./src/evalEnv");
+const initRubah = require("./src/rubah");
 
-let rubah;
 
-function leafFlatMap(obj, f) {
-    return flattenLeafValues(leafMap(obj, f))
-}
-
-function register(file, opts) {
-    const o = Object.assign({
-        module: module
-    }, opts)
-    rubah.register(require('./' + file.substr(0, file.length - 3))(o));
-}
-
-function registerTemplates(x, phase) {
-    if (x.templates)
-        for (let key in x.templates) {
-            let template = x.templates[key];
-            if (typeof x.template.phase == "undefined" || x.template.phase == phase) {
-                template = template.path;
-                register(template.substr(template.length - 3) == '.js' ? template : template + '.js');
-            }
-        }
-}
-
-function initRubah() {
-    rubah = new rubahjs.new();
-    rubah.promiseScan = async function(path) {
-        return new Promise(v => {
-            rubah.scan(path, x => v(x));
-        });
-    }
-    register('composefile.js');
-}
+let leafFlatMap = (obj, f)=>flattenLeafValues(leafMap(obj, f));
 
 function commandCondition(cmd) {
     let cond = true;
@@ -56,15 +21,14 @@ function commandCondition(cmd) {
 }
 
 async function main(module) {
-    initRubah();
-    let x = await rubah.promiseScan('.');
-    x = evalEnv(x.config);
-    // console.log(util.inspect(x, { depth: 20 }));
+    let rubah = initRubah({module});
+    let state = await rubah.exec();
+    
     let commands = [];
-    registerTemplates(x, "init");
+    rubah.registerTemplates(state.config, "init");
 
     //components buildup
-    let components = x.components;
+    let components = state.config.components;
     if (fs.existsSync('components')) rimraf.sync('components');
     fs.mkdirSync('components');
     if (components)
@@ -93,12 +57,8 @@ async function main(module) {
         }
     }
 
-    initRubah()
-    register('composefile.js');
-    registerTemplates(x, "compose");
-    let state = await rubah.promiseScan('.');
-    x = evalEnv(state.config);
-    await rubah.materialize();
+    rubah = initRubah({module});
+    state = await rubah.exec(state.config,true);
 
     //commands execution
     commands = extractSubObject(extractSubObject(components, 'component', 'commands'), 'name');
@@ -111,7 +71,7 @@ async function main(module) {
     }
 
     //exporting buildup
-    let exports = x.exports;
+    let exports = state.config.exports;
     if (fs.existsSync('exports')) rimraf.sync('exports');
     fs.mkdirSync('exports');
     if (exports)
@@ -121,12 +81,8 @@ async function main(module) {
     commands = extractSubObject(extractSubObject(exports, 'export', 'commands'), 'name');
 
     //composing
-    initRubah()
-    register('composefile.js');
-    registerTemplates(x, "export");
-    state = await rubah.promiseScan('.');
-    x = evalEnv(state.config);
-    await rubah.materialize();
+    rubah = initRubah({module});
+    state = await rubah.exec(state.config,true);
 
     //commands execution
     commands.sort((a, b) => a.id - b.id);
@@ -144,7 +100,7 @@ async function main(module) {
         }
 
     //cleanups
-    // if (fs.existsSync('components')) rimraf.sync('components');
+    if (fs.existsSync('components')) rimraf.sync('components');
 }
 
 function extractSubObject(obj, keyname, sub) {

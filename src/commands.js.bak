@@ -1,0 +1,24 @@
+const extract = require("./extractCommands");
+const shell = require("shelljs");
+const path = require("path");
+
+function commandCondition(cmd) {
+    let cond = true;
+    for (let key in cmd.conditions) {
+        cond = cond && (key == cmd.conditions[key]);
+    }
+    return cond;
+}
+
+function exec(objs, phase){
+    let commands = extract(objs,phase,'commands','name');
+    commands.sort((a, b) => a.id - b.id);
+    for (let command of commands) {
+        if (commandCondition(command)) {
+            console.log("executing", '[' + command[phase] + ']', command.name);
+            shell.exec(command.command, { cwd: path.resolve(process.cwd(), phase, command[phase]) });
+        }
+    }
+}
+
+module.exports = exec;

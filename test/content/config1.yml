@@ -1,0 +1,11 @@
+components:
+    test1:
+        protocol: git
+        path: test
+        _name: test1
+    multi:
+        protocol: file
+        path: test/static
+        multi: true
+        filter: '/test_file.*txt/'
+        noextension: true

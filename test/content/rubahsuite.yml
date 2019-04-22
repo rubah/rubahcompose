@@ -1,0 +1,33 @@
+components:
+    tools:
+        protocol: ${TOOL_PROTOCOL}
+        path: ${TOOL_PATH}
+    rubahjs:
+        protocol: ${RUBAHJS_PROTOCOL}
+        branch: ${RUBAHJS_BRANCH}
+        path: ${RUBAHJS_PATH}
+commands:
+    - type: component
+      component: tools
+    - type: shell
+      component: tools
+      command: "npm install"
+      condition: "process.env.RUBAH_COMPOSE_STAGE == 'build'"
+    - type: component
+      component: rubahjs
+    - type: shell
+      component: rubahjs
+      command: "npm install"
+      condition: "process.env.RUBAH_COMPOSE_STAGE == 'build'"
+    - type: shell
+      component: rubahjs
+      command: "npm test"
+      map: "x=>x.split('\\n').filter(a=>a.search('passing')>-1).pop()"
+    - type: shell
+      component: tools
+      command: "npm start"
+      map: "module.require('./execmap')"
+    - type: shell
+      component: rubahjs
+      command: "rm -rf doc && rm -rf test"
+    

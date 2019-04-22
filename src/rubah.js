@@ -18,7 +18,7 @@ function initRubah(opts) {
                 }
             }
     }
-    rubah.promiseScan = async function(path) {
+    rubah.promiseScan = function(path) {
         return new Promise(v => {
             rubah.scan(path, x => v(x));
         });

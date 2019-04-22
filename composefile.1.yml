@@ -15,8 +15,6 @@ components:
     protocol: ${RUBAHJS_PROTOCOL}
     branch: ${RUBAHJS_BRANCH}
     path: ${RUBAHJS_PATH}
-    multi: true
-    filter: "/dev|doc/"
     compose:
       doc: "rubahjs-doc"
     commands:
@@ -31,6 +29,12 @@ components:
       cleanup:
         id: 5
         command: "rm -rf doc && rm -rf test"
+  rubahjs-doc:
+    protocol: ${RUBAHJS_PROTOCOL}
+    branch: ${RUBAHJS_BRANCH_DOC}
+    path: ${RUBAHJS_PATH_DOC}
+    expose:
+      doc: "folder"
 exports:
   rubahjs:
     protocol: ${RUBAHJS_EXPORT_PROTOCOL}

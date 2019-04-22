@@ -1,0 +1,7 @@
+commands:
+    - type: component
+      component: test1
+    - type: shell
+      component: test1
+      command: 'rm -f test_file_a.txt'
+      
